@@ -1,57 +1,43 @@
 <!DOCTYPE html>
 <html lang="ja">
 <head>
-    <meta charset="utf-8">
-    <title>演習課題5-2：外部APIの呼び出しテスト</title>
+    <meta charset="UTF-8">
+    <title>課題5-2：Web APIの利用（国名）</title>
+    <style>
+        body {
+            font-family: sans-serif;
+            text-align: center;
+            padding: 30px;
+        }
+        #country {
+            margin-top: 20px;
+            font-size: 1.5em;
+            color: #2c3e50;
+        }
+    </style>
 </head>
 <body>
-    <h1>NBA選手情報取得</h1>
+    <h1>世界の国名を表示しよう</h1>
+    <p>ボタンをクリックすると、世界のどこかの国の名前が表示されます。</p>
 
-    <form name="apiform">
-        <p>
-            選手名：<input type="text" name="form_data" placeholder="例: LeBron">
-            <button type="button" onclick="some_api(this.form)">検索</button>
-        </p>
-    </form>
+    <button id="loadCountry">国名を表示</button>
 
-    <div id="result">ここに選手情報が表示されます</div>
+    <div id="country">ここに国名が表示されます</div>
 
     <script>
-        async function some_api(myForm) {
-            const resultDiv = document.getElementById("result");
-            const query = myForm.form_data.value.trim();
-
-            if (!query) {
-                resultDiv.innerHTML = "選手名を入力してください。";
-                return;
-            }
-
-            try {
-                const response = await fetch(`https://www.balldontlie.io/api/v1/players?search=${encodeURIComponent(query)}`);
-                if (!response.ok) throw new Error("API通信に失敗しました。");
-
-                const data = await response.json();
-
-                if (data.data.length === 0) {
-                    resultDiv.innerHTML = "該当する選手が見つかりませんでした。";
-                    return;
-                }
-
-                const player = data.data[0];
-
-                resultDiv.innerHTML = `
-                    <h2>${player.first_name} ${player.last_name}</h2>
-                    <p>チーム: ${player.team.full_name}</p>
-                    <p>ポジション: ${player.position || "不明"}</p>
-                    <p>身長: ${player.height_feet !== null ? player.height_feet + " フィート " + player.height_inches + " インチ" : "不明"}</p>
-                    <p>体重: ${player.weight_pounds !== null ? player.weight_pounds + " ポンド" : "不明"}</p>
-                `;
-            } catch (error) {
-                resultDiv.innerHTML = "エラーが発生しました: " + error.message;
-            }
-
-            document.apiform.reset();
-        }
+        document.getElementById('loadCountry').addEventListener('click', function () {
+            // ここにコードを書く
+            fetch('https://restcountries.com/v3.1/all')
+                .then(response => response.json())
+                .then(data => {
+                    const randomIndex = Math.floor(Math.random() * data.length);
+                    const countryName = data[randomIndex].name.common;
+                    document.getElementById('country').textContent = countryName;
+                })
+                .catch(error => {
+                    document.getElementById('country').textContent = 'エラーが発生しました: ' + error;
+                });
+        });
     </script>
 </body>
 </html>
