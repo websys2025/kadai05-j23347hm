@@ -1,22 +1,70 @@
+<!DOCTYPE html>
 <html lang="ja">
 <head>
-    <meta charset="utf-8">
-    <title>演習課題5-2：外部APIの呼び出しテスト</title>
+    <meta charset="UTF-8">
+    <title>課題5-2：Web APIの利用（国名検索）</title>
+    <style>
+        body {
+            font-family: sans-serif;
+            text-align: center;
+            padding: 30px;
+        }
+        #result {
+            margin-top: 20px;
+            font-size: 1.2em;
+            color: #2c3e50;
+        }
+        input[type="text"] {
+            padding: 8px;
+            font-size: 1em;
+        }
+        button {
+            padding: 8px 12px;
+            font-size: 1em;
+            margin-left: 5px;
+        }
+    </style>
 </head>
 <body>
-    <h1 id="msg">何かのAPI</h1>
-    <form name="apiform"><p>
-        何かのフォーム：<input type="text" name="form_data">
-        <button type="button" id="btn1" onclick="some_api(this.form)">実行</button>
-    </p></form>
-    
-    <div id="result"></div>
+    <h1>国名を検索して情報を表示しよう</h1>
+    <p>国名を入力して検索ボタンを押してください（例：Japan、France など）</p>
+
+    <input type="text" id="countryInput" placeholder="国名を入力">
+    <button id="searchBtn">検索</button>
+
+    <div id="result">ここに国の情報が表示されます</div>
+
     <script>
-        async function some_api(myForm) {
+        document.getElementById('searchBtn').addEventListener('click', function () {
             // ここにコードを書く
-            document.getElementById("result").innerHTML += myForm.form_data.value+"<br />";
-            document.apiform.reset();
-        }
+            const countryName = document.getElementById('countryInput').value.trim();
+            if (!countryName) {
+                document.getElementById('result').textContent = '国名を入力してください。';
+                return;
+            }
+
+            fetch(`https://restcountries.com/v3.1/name/${encodeURIComponent(countryName)}?fullText=true`)
+                .then(response => {
+                    if (!response.ok) {
+                        throw new Error('該当する国が見つかりません。');
+                    }
+                    return response.json();
+                })
+                .then(data => {
+                    const country = data[0];
+                    const info = `
+                        ✅ <strong>${country.name.common}</strong><br>
+                        🌐 正式名称: ${country.name.official}<br>
+                        🏛️ 首都: ${country.capital?.[0] || '不明'}<br>
+                        🌍 地域: ${country.region}<br>
+                        👥 人口: ${country.population.toLocaleString()}人
+                    `;
+                    document.getElementById('result').innerHTML = info;
+                })
+                .catch(error => {
+                    document.getElementById('result').textContent = 'エラー: ' + error.message;
+                });
+        });
     </script>
 </body>
 </html>

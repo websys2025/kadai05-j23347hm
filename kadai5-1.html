@@ -1,22 +1,52 @@
+<!DOCTYPE html>
 <html lang="ja">
 <head>
     <meta charset="utf-8">
-    <title>演習課題5-1：郵便番号APIの呼び出しテスト</title>
+    <title>課題5-1：郵便番号検索</title>
+    <style>
+        body {
+            font-family: sans-serif;
+            padding: 20px;
+        }
+        label, input, button {
+            font-size: 1em;
+            margin: 5px;
+        }
+    </style>
 </head>
 <body>
-    <h1 id="msg">郵便番号API</h1>
-    <form name="apiform"><p>
-        郵便番号：<input type="text" name="zipcode">
-        <button type="button" id="btn1" onclick="zip_api(this.form)">実行</button>
-    </p></form>
-    
-    <div id="result">結果はここに表示</div>
+    <h1>郵便番号から住所を取得</h1>
+
+    <label for="zipcode">郵便番号（ハイフンなし）:</label>
+    <input type="text" id="zipcode" maxlength="7" placeholder="例：1000001">
+    <button onclick="searchAddress()">検索</button>
+
+    <p id="result">ここに住所が表示されます</p>
+
     <script>
-        async function zip_api(myForm) {
-            const endpoint = "https://zipcloud.ibsnet.co.jp/api/search";
-            // ここにコードを書く
-            // zipcloudのAPI呼び出して結果を表示する
-            document.getElementById("result").innerHTML =  myForm.zipcode.value; // 現状ではそのまま表示しているだけ
+        function searchAddress() {
+            const zipcode = document.getElementById('zipcode').value;
+            const result = document.getElementById('result');
+
+            if (!/^\d{7}$/.test(zipcode)) {
+                result.textContent = '正しい7桁の郵便番号を入力してください。';
+                return;
+            }
+
+            fetch(`https://zipcloud.ibsnet.co.jp/api/search?zipcode=${zipcode}`)
+                .then(response => response.json())
+                .then(data => {
+                    if (data.results) {
+                        const address = data.results[0];
+                        result.textContent = `${address.address1} ${address.address2} ${address.address3}`;
+                    } else {
+                        result.textContent = '住所が見つかりませんでした。';
+                    }
+                })
+                .catch(error => {
+                    result.textContent = 'エラーが発生しました。';
+                    console.error(error);
+                });
         }
     </script>
 </body>
