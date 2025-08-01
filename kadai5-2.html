@@ -2,40 +2,67 @@
 <html lang="ja">
 <head>
     <meta charset="UTF-8">
-    <title>課題5-2：Web APIの利用（国名）</title>
+    <title>課題5-2：Web APIの利用（国名検索）</title>
     <style>
         body {
             font-family: sans-serif;
             text-align: center;
             padding: 30px;
         }
-        #country {
+        #result {
             margin-top: 20px;
-            font-size: 1.5em;
+            font-size: 1.2em;
             color: #2c3e50;
+        }
+        input[type="text"] {
+            padding: 8px;
+            font-size: 1em;
+        }
+        button {
+            padding: 8px 12px;
+            font-size: 1em;
+            margin-left: 5px;
         }
     </style>
 </head>
 <body>
-    <h1>世界の国名を表示しよう</h1>
-    <p>ボタンをクリックすると、世界のどこかの国の名前が表示されます。</p>
+    <h1>国名を検索して情報を表示しよう</h1>
+    <p>国名を入力して検索ボタンを押してください（例：Japan、France など）</p>
 
-    <button id="loadCountry">国名を表示</button>
+    <input type="text" id="countryInput" placeholder="国名を入力">
+    <button id="searchBtn">検索</button>
 
-    <div id="country">ここに国名が表示されます</div>
+    <div id="result">ここに国の情報が表示されます</div>
 
     <script>
-        document.getElementById('loadCountry').addEventListener('click', function () {
+        document.getElementById('searchBtn').addEventListener('click', function () {
             // ここにコードを書く
-            fetch('https://restcountries.com/v3.1/all')
-                .then(response => response.json())
+            const countryName = document.getElementById('countryInput').value.trim();
+            if (!countryName) {
+                document.getElementById('result').textContent = '国名を入力してください。';
+                return;
+            }
+
+            fetch(`https://restcountries.com/v3.1/name/${encodeURIComponent(countryName)}?fullText=true`)
+                .then(response => {
+                    if (!response.ok) {
+                        throw new Error('該当する国が見つかりません。');
+                    }
+                    return response.json();
+                })
                 .then(data => {
-                    const randomIndex = Math.floor(Math.random() * data.length);
-                    const countryName = data[randomIndex].name.common;
-                    document.getElementById('country').textContent = countryName;
+                    const country = data[0];
+                    const info = `
+                        ✅ <strong>${country.name.common}</strong><br>
+                        🌐 正式名称: ${country.name.official}<br>
+                        🏛️ 首都: ${country.capital?.[0] || '不明'}<br>
+                        🌍 地域: ${country.region}<br>
+                        👥 人口: ${country.population.toLocaleString()}人
+                    `;
+                    document.getElementById('result').innerHTML = info;
                 })
                 .catch(error => {
-                    document.getElementById('country').textContent = 'エラーが発生しました: ' + error;
+                    document.getElementById('result').textContent = 'エラー: ' + error.message;
                 });
         });
     </script>
